@@ -1,0 +1,58 @@
+import { Category } from "../types";
+
+export const mockCategories: Category[] = [
+  {
+    id: "cat-clothing",
+    name: "Clothing",
+    slug: "clothing",
+    description: "Refined tailoring, heavyweight organic tees, and Okayama selvedge denim.",
+    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000&auto=format&fit=crop",
+    productCount: 142,
+    featured: true,
+  },
+  {
+    id: "cat-shoes",
+    name: "Shoes",
+    slug: "shoes",
+    description: "Handcrafted Tuscan calfskin sneakers and Goodyear welted suede Chelsea boots.",
+    image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1000&auto=format&fit=crop",
+    productCount: 64,
+    featured: true,
+  },
+  {
+    id: "cat-accessories",
+    name: "Accessories",
+    slug: "accessories",
+    description: "Sculptural leather totes, grade-A Mongolian cashmere, and artisan eyewear.",
+    image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1000&auto=format&fit=crop",
+    productCount: 98,
+    featured: true,
+  },
+  {
+    id: "cat-beauty",
+    name: "Beauty",
+    slug: "beauty",
+    description: "Cold-pressed botanical serums, restorative facial nectars, and niche fragrances.",
+    image: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=1000&auto=format&fit=crop",
+    productCount: 51,
+    featured: true,
+  },
+  {
+    id: "cat-lifestyle",
+    name: "Lifestyle",
+    slug: "lifestyle",
+    description: "Precision Swiss automatic timepieces and minimalist design accents.",
+    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop",
+    productCount: 38,
+    featured: true,
+  },
+  {
+    id: "cat-seasonal",
+    name: "Seasonal Collections",
+    slug: "seasonal",
+    description: "Limited Autumn / Winter capsule releases from independent global ateliers.",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop",
+    productCount: 26,
+    featured: true,
+  },
+];
