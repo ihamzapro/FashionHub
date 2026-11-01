@@ -9,8 +9,7 @@ export default function AdminLayout({
   return (
     <DashboardLayout
       role="admin"
-      title="Platform Governance & Operations"
-      description="Supervise marketplace activities, verify fashion suppliers, audit product listings, and generate system reports."
+      title="Dashboard"
     >
       {children}
     </DashboardLayout>

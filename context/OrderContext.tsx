@@ -1,13 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useSyncExternalStore } from "react";
-import { Order, CreateOrderInput } from "@/lib/types";
+import { Order, CreateOrderInput, OrderStatus } from "@/lib/types";
 import { mockOrders } from "@/lib/mock-data";
 
 interface OrderContextType {
   orders: Order[];
   getOrderById: (id: string) => Order | undefined;
   createOrder: (input: CreateOrderInput) => Order;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => boolean;
   isHydrated: boolean;
 }
 
@@ -146,12 +147,41 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     return newOrder;
   };
 
+  const updateOrderStatus = (orderId: string, newStatus: OrderStatus): boolean => {
+    const normalized = orderId.toLowerCase().trim();
+    const index = orderMemoryState.findIndex(
+      (o) =>
+        o.id.toLowerCase() === normalized ||
+        o.orderNumber.toLowerCase() === normalized ||
+        o.orderNumber.toLowerCase().replace("#", "") === normalized
+    );
+
+    if (index === -1) return false;
+
+    const existing = orderMemoryState[index];
+    const isDelivered = newStatus.toLowerCase() === "delivered";
+
+    const updatedOrder: Order = {
+      ...existing,
+      status: newStatus.toLowerCase() as OrderStatus,
+      orderStatus: newStatus,
+      paymentStatus: isDelivered ? "Paid" : existing.paymentStatus,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updatedList = [...orderMemoryState];
+    updatedList[index] = updatedOrder;
+    saveOrders(updatedList);
+    return true;
+  };
+
   return (
     <OrderContext.Provider
       value={{
         orders,
         getOrderById,
         createOrder,
+        updateOrderStatus,
         isHydrated,
       }}
     >

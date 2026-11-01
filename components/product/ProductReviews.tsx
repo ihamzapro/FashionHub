@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
+import { useReviews } from "@/context/ReviewContext";
 
 export interface ProductReviewsProps {
   productId: string;
@@ -59,7 +60,20 @@ export function ProductReviews({
     ];
   }, [initialReviews, productId]);
 
-  const [reviews, setReviews] = useState<Review[]>(defaultReviews);
+  const { getApprovedReviews, addReview } = useReviews();
+
+  const reviews = useMemo(() => {
+    const fromContext = getApprovedReviews(productId);
+    if (fromContext && fromContext.length > 0) {
+      return fromContext;
+    }
+    const approvedInitial = (initialReviews || []).filter(
+      (r) => r.status === "approved" || !r.status
+    );
+    if (approvedInitial.length > 0) return approvedInitial;
+    return defaultReviews;
+  }, [getApprovedReviews, productId, initialReviews, defaultReviews]);
+
   const [selectedStarFilter, setSelectedStarFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<"recent" | "helpful" | "highest">("recent");
 
@@ -99,6 +113,8 @@ export function ProductReviews({
     return Number((sum / reviews.length).toFixed(1));
   }, [reviews, productRating]);
 
+  const [helpfulBonus, setHelpfulBonus] = useState<Record<string, number>>({});
+
   // Filtered and sorted reviews
   const displayedReviews = useMemo(() => {
     let result = [...reviews];
@@ -108,20 +124,22 @@ export function ProductReviews({
     if (sortBy === "recent") {
       result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else if (sortBy === "helpful") {
-      result.sort((a, b) => (b.helpfulVotes || 0) - (a.helpfulVotes || 0));
+      result.sort((a, b) => {
+        const aVotes = (a.helpfulVotes || 0) + (helpfulBonus[a.id] || 0);
+        const bVotes = (b.helpfulVotes || 0) + (helpfulBonus[b.id] || 0);
+        return bVotes - aVotes;
+      });
     } else if (sortBy === "highest") {
       result.sort((a, b) => b.rating - a.rating);
     }
     return result;
-  }, [reviews, selectedStarFilter, sortBy]);
+  }, [reviews, selectedStarFilter, sortBy, helpfulBonus]);
 
   const handleHelpfulClick = (reviewId: string) => {
     if (helpfulClicked[reviewId]) return;
 
     setHelpfulClicked((prev) => ({ ...prev, [reviewId]: true }));
-    setReviews((prev) =>
-      prev.map((r) => (r.id === reviewId ? { ...r, helpfulVotes: (r.helpfulVotes || 0) + 1 } : r))
-    );
+    setHelpfulBonus((prev) => ({ ...prev, [reviewId]: (prev[reviewId] || 0) + 1 }));
 
     toast({
       title: "Thank you",
@@ -145,20 +163,18 @@ export function ProductReviews({
     setIsSubmitting(true);
 
     setTimeout(() => {
-      const newReview: Review = {
-        id: `rev-sub-${Date.now()}`,
+      addReview({
         productId,
-        customerId: `usr-${Date.now()}`,
+        customerId: `usr-${Date.now().toString(36)}`,
         customerName: formName.trim(),
+        customerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
         rating: formRating,
         title: formTitle.trim(),
         comment: formComment.trim(),
         verifiedPurchase: true,
         helpfulVotes: 0,
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      setReviews((prev) => [newReview, ...prev]);
       setIsSubmitting(false);
       setIsModalOpen(false);
 
@@ -169,11 +185,11 @@ export function ProductReviews({
       setFormRating(5);
 
       toast({
-        title: "Review Published",
-        message: "Thank you for sharing your experience with the atelier community.",
-        type: "success",
+        title: "Review Awaiting Moderation",
+        message: "Your review has been submitted for administrative review and will appear once approved.",
+        type: "info",
       });
-    }, 600);
+    }, 400);
   };
 
   const formatDate = (dateStr: string) => {
@@ -366,7 +382,7 @@ export function ProductReviews({
                   )}
                 >
                   <ThumbsUp className="w-3 h-3" />
-                  <span>Helpful ({rev.helpfulVotes || 0})</span>
+                  <span>Helpful ({(rev.helpfulVotes || 0) + (helpfulBonus[rev.id] || 0)})</span>
                 </button>
 
                 <span className="text-[11px] text-[#737373]">Verified Atelier Purchase</span>

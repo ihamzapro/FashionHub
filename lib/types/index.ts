@@ -56,6 +56,7 @@ export interface Product {
   isTrending?: boolean;
   availableSizes?: string[];
   availableColors?: string[];
+  status?: "active" | "draft" | "archived";
   createdAt: string;
   updatedAt?: string;
 }
@@ -159,6 +160,7 @@ export interface Review {
   comment: string;
   verifiedPurchase: boolean;
   helpfulVotes?: number;
+  status?: "pending" | "approved" | "rejected";
   createdAt: string;
 }
 

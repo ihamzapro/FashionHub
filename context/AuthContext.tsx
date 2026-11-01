@@ -19,6 +19,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isHydrated: boolean;
+  users: User[];
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
@@ -27,6 +28,9 @@ export interface AuthContextType {
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   switchAccount: (targetRole: UserRole) => void;
+  updateUser: (id: string, updates: Partial<User>) => void;
+  deleteUser: (id: string) => boolean;
+  createUser: (userData: Partial<User> & { name: string; email: string; role: UserRole }) => User;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -203,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: Boolean(currentUser),
       isLoading: !isHydrated,
       isHydrated,
+      users: store.users,
 
       async login(email: string, password: string) {
         const cleanEmail = email.trim().toLowerCase();
@@ -396,8 +401,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           notify();
         }
       },
+
+      updateUser(id: string, updates: Partial<User>) {
+        const updated = authMemoryState.users.map((u) =>
+          u.id === id ? { ...u, ...updates, updatedAt: new Date().toISOString() } : u
+        );
+        const isCurrent = authMemoryState.currentUser?.id === id;
+        const updatedCurrent = isCurrent
+          ? { ...authMemoryState.currentUser!, ...updates, updatedAt: new Date().toISOString() }
+          : authMemoryState.currentUser;
+
+        authMemoryState = {
+          ...authMemoryState,
+          users: updated,
+          currentUser: updatedCurrent,
+        };
+        saveUsersToStorage(updated);
+        if (isCurrent) saveCurrentUserToStorage(updatedCurrent);
+        notify();
+      },
+
+      deleteUser(id: string): boolean {
+        if (authMemoryState.currentUser?.id === id) {
+          return false;
+        }
+        const updated = authMemoryState.users.filter((u) => u.id !== id);
+        authMemoryState = {
+          ...authMemoryState,
+          users: updated,
+        };
+        saveUsersToStorage(updated);
+        notify();
+        return true;
+      },
+
+      createUser(userData: Partial<User> & { name: string; email: string; role: UserRole }): User {
+        const newUser: User = {
+          id: `usr-${userData.role}-${Date.now().toString(36)}`,
+          name: userData.name,
+          email: userData.email.toLowerCase(),
+          role: userData.role,
+          password: userData.password || DEFAULT_PASSWORD,
+          status: userData.status || "active",
+          phone: userData.phone || "",
+          storeName: userData.storeName,
+          avatar: userData.avatar || (userData.role === "supplier"
+            ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop"
+            : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop"),
+          createdAt: new Date().toISOString(),
+          address: userData.address || {
+            street: "",
+            city: "",
+            state: "",
+            postalCode: "",
+            country: "",
+          },
+        };
+        const updated = [...authMemoryState.users, newUser];
+        authMemoryState = {
+          ...authMemoryState,
+          users: updated,
+        };
+        saveUsersToStorage(updated);
+        notify();
+        return newUser;
+      },
     };
-  }, [currentUser, isHydrated]);
+  }, [currentUser, store.users, isHydrated]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

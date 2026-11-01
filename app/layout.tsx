@@ -2,7 +2,15 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
-import { AuthProvider, CartProvider, WishlistProvider, OrderProvider } from "@/context";
+import {
+  AuthProvider,
+  CartProvider,
+  WishlistProvider,
+  OrderProvider,
+  ProductProvider,
+  CategoryProvider,
+  ReviewProvider,
+} from "@/context";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -39,13 +47,19 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#FAF8F5] text-[#242424] font-sans selection:bg-[#8B3A4A]/20 selection:text-[#1C1C1C]">
         <ToastProvider>
           <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <OrderProvider>
-                  {children}
-                </OrderProvider>
-              </WishlistProvider>
-            </CartProvider>
+            <ProductProvider>
+              <CategoryProvider>
+                <ReviewProvider>
+                  <CartProvider>
+                    <WishlistProvider>
+                      <OrderProvider>
+                        {children}
+                      </OrderProvider>
+                    </WishlistProvider>
+                  </CartProvider>
+                </ReviewProvider>
+              </CategoryProvider>
+            </ProductProvider>
           </AuthProvider>
         </ToastProvider>
       </body>
