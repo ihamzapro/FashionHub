@@ -10,6 +10,13 @@ import {
   Eye,
   CheckCircle2,
   Clock,
+  Star,
+  TrendingUp,
+  AlertCircle,
+  XCircle,
+  ShieldAlert,
+  ChevronDown,
+  RotateCcw,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
@@ -17,6 +24,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { RatingStars } from "@/components/product/RatingStars";
 import { useToast } from "@/components/ui/Toast";
 import { useReviews } from "@/context/ReviewContext";
@@ -66,6 +74,27 @@ export default function AdminReviewsPage() {
   const pendingCount = reviews.filter((r) => r.status === "pending").length;
   const approvedCount = reviews.filter((r) => r.status === "approved" || !r.status).length;
   const rejectedCount = reviews.filter((r) => r.status === "rejected").length;
+  const avgRating = useMemo(() => {
+    if (reviews.length === 0) return "5.0";
+    const sum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
+    return (sum / reviews.length).toFixed(1);
+  }, [reviews]);
+
+  const statusOptions = [
+    { id: "all", label: "All Statuses" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+  ];
+
+  const statusCounts = useMemo(() => {
+    return {
+      all: reviews.length,
+      pending: pendingCount,
+      approved: approvedCount,
+      rejected: rejectedCount,
+    };
+  }, [reviews.length, pendingCount, approvedCount, rejectedCount]);
 
   const handleApprove = (id: string) => {
     approveReview(id);
@@ -134,88 +163,123 @@ export default function AdminReviewsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-            Review & Community Feedback Moderation
-          </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Audit customer testimonials, verify authenticity, and approve only quality feedback to appear on the marketplace.
-          </p>
-        </div>
-
-        {pendingCount > 0 && (
-          <Badge variant="outline" size="md" className="border-[#8B3A4A] text-[#8B3A4A] bg-[#8B3A4A]/5">
-            {pendingCount} Pending Moderation
-          </Badge>
-        )}
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+          Review & Community Feedback Moderation
+        </h2>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+      {/* 4 Compact, Modern KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* 1. Total Reviews */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
                 Total Reviews
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#1C1C1C] mt-0.5">
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <MessageSquare className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {reviews.length}
               </h3>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <MessageSquare className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#8B3A4A] bg-[#8B3A4A]/10 px-1.5 py-0.5 rounded">
+                  <Star className="w-2.5 h-2.5 fill-current" />
+                  {avgRating} Avg
+                </span>
+                <span className="text-[10px] text-[#737373]">customer feedback</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-white border border-[#8B3A4A]/40 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+        {/* 2. Pending Moderation */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
                 Pending Moderation
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#8B3A4A] mt-0.5">
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <Clock className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {pendingCount}
               </h3>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A] border border-[#8B3A4A] flex items-center justify-center text-white shadow-xs group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <Clock className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                  pendingCount > 0 ? "text-[#B78628] bg-[#B78628]/10" : "text-[#4F7A61] bg-[#4F7A61]/10"
+                }`}>
+                  {pendingCount > 0 ? <AlertCircle className="w-2.5 h-2.5" /> : <CheckCircle2 className="w-2.5 h-2.5" />}
+                  {pendingCount > 0 ? "Requires Audit" : "Queue Clear"}
+                </span>
+                <span className="text-[10px] text-[#737373]">awaiting review</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
-                Approved (Public)
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#4F7A61] mt-0.5">
+        {/* 3. Approved (Live) */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                Approved (Live)
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <CheckCircle2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {approvedCount}
               </h3>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <Check className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#4F7A61] bg-[#4F7A61]/10 px-1.5 py-0.5 rounded">
+                  <TrendingUp className="w-2.5 h-2.5" />
+                  {reviews.length > 0 ? Math.round((approvedCount / reviews.length) * 100) : 100}%
+                </span>
+                <span className="text-[10px] text-[#737373]">storefront active</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+        {/* 4. Rejected / Hidden */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
                 Rejected / Hidden
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#737373] mt-0.5">
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <XCircle className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {rejectedCount}
               </h3>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <X className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#737373] bg-neutral-100 px-1.5 py-0.5 rounded">
+                  <ShieldAlert className="w-2.5 h-2.5" />
+                  Policy Filter
+                </span>
+                <span className="text-[10px] text-[#737373]">spam suppressed</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -223,34 +287,92 @@ export default function AdminReviewsPage() {
 
       {/* Reviews Table Card */}
       <Card>
-        <CardHeader className="py-4 border-b border-[#E5E1DC]">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            <div className="w-full sm:max-w-sm">
+        <CardHeader className="py-3.5 px-4 sm:px-6 border-b border-[#E5E1DC]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="w-full sm:max-w-xs md:max-w-sm">
               <Input
                 placeholder="Search reviews by user or piece..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 leftIcon={<Search className="w-4 h-4 text-[#737373]" />}
+                className="h-10 text-xs bg-white"
               />
             </div>
 
-            <div className="flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-lg border border-[#E5E1DC]">
-              <span className="text-[10px] font-semibold text-[#737373] px-2 uppercase tracking-wider">
-                Status:
-              </span>
-              {["all", "pending", "approved", "rejected"].map((s) => (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Dropdown
+                align="right"
+                className="w-56 p-1.5 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08)] border-[#E5E1DC] rounded-xl"
+                trigger={
+                  <button
+                    type="button"
+                    className={`h-10 px-3.5 rounded-lg border text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${
+                      statusFilter !== "all"
+                        ? "bg-[#8B3A4A]/10 border-[#8B3A4A] text-[#8B3A4A] shadow-xs"
+                        : "bg-white border-[#E5E1DC] text-[#242424] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
+                    }`}
+                  >
+                    <span className="text-[#737373] text-[11px] font-normal">Status:</span>
+                    <span className="font-semibold capitalize text-[#1C1C1C]">
+                      {statusOptions.find((opt) => opt.id === statusFilter)?.label || "All Statuses"}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#737373] ml-0.5" />
+                  </button>
+                }
+              >
+                <div className="px-3 py-1.5 border-b border-[#E5E1DC]/60 mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                    Filter by Status
+                  </p>
+                </div>
+
+                {statusOptions.map((item) => {
+                  const isSelected = statusFilter === item.id;
+                  const count = statusCounts[item.id as keyof typeof statusCounts] ?? 0;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setStatusFilter(item.id)}
+                      className={`w-full px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#8B3A4A]/10 text-[#8B3A4A] font-semibold"
+                          : "text-[#242424] hover:bg-[#FAF8F5] hover:text-[#1C1C1C]"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+                            isSelected
+                              ? "bg-[#8B3A4A]/15 text-[#8B3A4A]"
+                              : "bg-[#FAF8F5] text-[#737373] border border-[#E5E1DC]"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#8B3A4A]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </Dropdown>
+
+              {/* Reset Filters Quick Action */}
+              {(statusFilter !== "all" || search) && (
                 <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-3 py-1 rounded-md text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer ${
-                    statusFilter === s
-                      ? "bg-[#8B3A4A] text-white shadow-xs"
-                      : "text-[#737373] hover:text-[#1C1C1C]"
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setSearch("");
+                  }}
+                  className="h-10 px-2.5 text-xs text-[#737373] hover:text-[#8B3A4A] hover:bg-[#8B3A4A]/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                  title="Reset all filters"
                 >
-                  {s}
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset</span>
                 </button>
-              ))}
+              )}
             </div>
           </div>
         </CardHeader>

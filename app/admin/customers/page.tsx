@@ -6,10 +6,15 @@ import {
   Search,
   Eye,
   CheckCircle,
+  CheckCircle2,
   XCircle,
   ShoppingBag,
   DollarSign,
   UserCheck,
+  TrendingUp,
+  ChevronDown,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
@@ -17,6 +22,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrderContext";
@@ -61,6 +67,15 @@ export default function AdminCustomersPage() {
     });
   }, [customers, orders]);
 
+  // Status counts for dropdown
+  const statusCounts = useMemo(() => {
+    return {
+      all: customerRows.length,
+      active: customerRows.filter((c) => c.status === "active").length,
+      suspended: customerRows.filter((c) => c.status === "suspended").length,
+    };
+  }, [customerRows]);
+
   // Filtered customers
   const filteredCustomers = useMemo(() => {
     return customerRows.filter((cust) => {
@@ -95,95 +110,121 @@ export default function AdminCustomersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-            Customer Directory & Lifetime Value
-          </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Monitor client acquisition, order frequency, and customer lifetime spend across the platform.
-          </p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+          Customer Directory & Lifetime Value
+        </h2>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
-                Registered Customers
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#1C1C1C] mt-0.5">
+      {/* 4 Compact, Modern KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* 1. Registered Customers */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                Registered Clients
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <Users className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {totalCustomersCount}
               </h3>
-              <p className="text-[11px] text-[#4F7A61] font-medium mt-0.5">
-                Active shopper network
-              </p>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <Users className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#4F7A61] bg-[#4F7A61]/10 px-1.5 py-0.5 rounded">
+                  <TrendingUp className="w-2.5 h-2.5" />
+                  Verified
+                </span>
+                <span className="text-[10px] text-[#737373]">shopper network</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+        {/* 2. Active Shoppers */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
                 Active Shoppers
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#1C1C1C] mt-0.5">
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <UserCheck className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {activeCustomersCount}
               </h3>
-              <p className="text-[11px] text-[#4F7A61] font-medium mt-0.5">
-                98% clean status
-              </p>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <UserCheck className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#4F7A61] bg-[#4F7A61]/10 px-1.5 py-0.5 rounded">
+                  <CheckCircle2 className="w-2.5 h-2.5" />
+                  98.2%
+                </span>
+                <span className="text-[10px] text-[#737373]">retention rate</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
-                Total Customer GMV
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#1C1C1C] mt-0.5">
+        {/* 3. Total Customer GMV */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                Total Lifetime Spend
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <DollarSign className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {formatCurrency(totalSpend)}
               </h3>
-              <p className="text-[11px] text-[#4F7A61] font-medium mt-0.5">
-                Lifetime customer revenue
-              </p>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <DollarSign className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[#4F7A61] bg-[#4F7A61]/10 px-1.5 py-0.5 rounded">
+                  <TrendingUp className="w-2.5 h-2.5" />
+                  +14.2%
+                </span>
+                <span className="text-[10px] text-[#737373]">platform volume</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_8px_24px_rgba(139,58,74,0.1)] hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CardContent className="p-4.5 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
-                Avg Order Value (AOV)
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#1C1C1C] mt-0.5">
+        {/* 4. Avg Order Value */}
+        <Card className="group relative overflow-hidden bg-white border border-[#E5E1DC] hover:border-[#8B3A4A]/50 rounded-xl hover:shadow-[0_4px_16px_rgba(139,58,74,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#8B3A4A] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                Avg Order Value
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] transition-all duration-200 shrink-0">
+                <ShoppingBag className="w-4 h-4 transition-transform duration-200 group-hover:scale-105" />
+              </div>
+            </div>
+
+            <div className="mt-1.5">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1C]">
                 {formatCurrency(avgOrderValue)}
               </h3>
-              <p className="text-[11px] text-[#737373] mt-0.5">
-                High cart quality
-              </p>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-[#8B3A4A]/10 border border-[#8B3A4A]/20 flex items-center justify-center text-[#8B3A4A] shadow-xs group-hover:bg-[#8B3A4A] group-hover:text-white group-hover:border-[#8B3A4A] group-hover:scale-105 group-hover:shadow-md group-hover:shadow-[#8B3A4A]/25 transition-all duration-300 shrink-0">
-              <ShoppingBag className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#8B3A4A] bg-[#8B3A4A]/10 px-1.5 py-0.5 rounded">
+                  Premium
+                </span>
+                <span className="text-[10px] text-[#737373]">per checkout</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -191,34 +232,95 @@ export default function AdminCustomersPage() {
 
       {/* Customer Table */}
       <Card>
-        <CardHeader className="py-4 border-b border-[#E5E1DC]">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            <div className="w-full sm:max-w-sm">
+        <CardHeader className="py-3.5 px-4 sm:px-6 border-b border-[#E5E1DC]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="w-full sm:max-w-xs md:max-w-sm">
               <Input
                 placeholder="Search by name, email, or phone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 leftIcon={<Search className="w-4 h-4 text-[#737373]" />}
+                className="h-10 text-xs bg-white"
               />
             </div>
 
-            <div className="flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-lg border border-[#E5E1DC]">
-              <span className="text-[10px] font-semibold text-[#737373] px-2 uppercase tracking-wider">
-                Status:
-              </span>
-              {["all", "active", "suspended"].map((s) => (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Dropdown
+                align="right"
+                className="w-56 p-1.5 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08)] border-[#E5E1DC] rounded-xl"
+                trigger={
+                  <button
+                    type="button"
+                    className={`h-10 px-3.5 rounded-lg border text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${
+                      statusFilter !== "all"
+                        ? "bg-[#8B3A4A]/10 border-[#8B3A4A] text-[#8B3A4A] shadow-xs"
+                        : "bg-white border-[#E5E1DC] text-[#242424] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
+                    }`}
+                  >
+                    <span className="text-[#737373] text-[11px] font-normal">Status:</span>
+                    <span className="font-semibold capitalize text-[#1C1C1C]">
+                      {statusFilter === "all" ? "All Statuses" : statusFilter}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#737373] ml-0.5" />
+                  </button>
+                }
+              >
+                <div className="px-3 py-1.5 border-b border-[#E5E1DC]/60 mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                    Filter by Status
+                  </p>
+                </div>
+
+                {[
+                  { id: "all", label: "All Statuses", count: statusCounts.all },
+                  { id: "active", label: "Active", count: statusCounts.active },
+                  { id: "suspended", label: "Suspended", count: statusCounts.suspended },
+                ].map((item) => {
+                  const isSelected = statusFilter === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setStatusFilter(item.id)}
+                      className={`w-full px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#8B3A4A]/10 text-[#8B3A4A] font-semibold"
+                          : "text-[#242424] hover:bg-[#FAF8F5] hover:text-[#1C1C1C]"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+                            isSelected
+                              ? "bg-[#8B3A4A]/15 text-[#8B3A4A]"
+                              : "bg-[#FAF8F5] text-[#737373] border border-[#E5E1DC]"
+                          }`}
+                        >
+                          {item.count}
+                        </span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#8B3A4A]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </Dropdown>
+
+              {/* Reset Filters Quick Action */}
+              {(statusFilter !== "all" || search) && (
                 <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-3 py-1 rounded-md text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer ${
-                    statusFilter === s
-                      ? "bg-[#8B3A4A] text-white shadow-xs"
-                      : "text-[#737373] hover:text-[#1C1C1C]"
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setSearch("");
+                  }}
+                  className="h-10 px-2.5 text-xs text-[#737373] hover:text-[#8B3A4A] hover:bg-[#8B3A4A]/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                  title="Reset all filters"
                 >
-                  {s}
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset</span>
                 </button>
-              ))}
+              )}
             </div>
           </div>
         </CardHeader>

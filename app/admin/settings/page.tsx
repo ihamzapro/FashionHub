@@ -19,13 +19,13 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
     marketplaceCommission: "12.5",
     codEnabled: true,
-    codMaxLimit: "1500",
-    freeShippingThreshold: "250",
+    codMaxLimit: "50000",
+    freeShippingThreshold: "5000",
     requireReviewApproval: true,
     maintenanceMode: false,
     supplierAutoApproval: false,
     platformSupportEmail: "concierge@fashionhub.com",
-    currency: "USD ($)",
+    currency: "PKR (Rs.)",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -48,14 +48,9 @@ export default function AdminSettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-            Platform Governance & Global Settings
-          </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Configure marketplace commission take-rates, payment policies, escrow settlement intervals, and review moderation.
-          </p>
-        </div>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+          Platform Governance & Global Settings
+        </h2>
 
         <Badge variant="outline" size="sm" className="border-[#4F7A61] text-[#4F7A61] bg-[#4F7A61]/10">
           Governance Active
@@ -65,16 +60,13 @@ export default function AdminSettingsPage() {
       <form onSubmit={handleSave} className="space-y-6">
         {/* Marketplace Financials & Commission */}
         <Card>
-          <CardHeader>
+          <CardHeader className="py-3.5 sm:py-4 px-4 sm:px-6 border-b border-[#E5E1DC]">
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-[#8B3A4A]" />
-              <CardTitle className="text-base">Commission & Monetization</CardTitle>
+              <CardTitle className="text-base text-[#1C1C1C]">Commission & Monetization</CardTitle>
             </div>
-            <p className="text-xs text-[#737373]">
-              Default take-rate deducted from supplier payouts on marketplace transactions.
-            </p>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <CardContent className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <Input
               label="Standard Commission Take-Rate (%)"
               type="number"
@@ -86,11 +78,11 @@ export default function AdminSettingsPage() {
             />
 
             <Input
-              label="Complimentary Shipping Threshold ($)"
+              label="Complimentary Shipping Threshold (PKR)"
               type="number"
               value={settings.freeShippingThreshold}
               onChange={(e) => setSettings({ ...settings, freeShippingThreshold: e.target.value })}
-              helperText="Orders exceeding this sum qualify for free delivery"
+              helperText="Orders exceeding this sum qualify for free delivery across Pakistan"
               required
             />
 
@@ -101,6 +93,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E1DC] rounded-lg focus:outline-none focus:border-[#8B3A4A]"
               >
+                <option value="PKR (Rs.)">PKR (Rs.) - Pakistani Rupee</option>
                 <option value="USD ($)">USD ($) - United States Dollar</option>
                 <option value="EUR (€)">EUR (€) - Euro</option>
                 <option value="GBP (£)">GBP (£) - British Pound</option>
@@ -112,21 +105,18 @@ export default function AdminSettingsPage() {
 
         {/* Payment & COD Rules */}
         <Card>
-          <CardHeader>
+          <CardHeader className="py-3.5 sm:py-4 px-4 sm:px-6 border-b border-[#E5E1DC]">
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#8B3A4A]" />
-              <CardTitle className="text-base">Payment & Settlement Rules</CardTitle>
+              <CardTitle className="text-base text-[#1C1C1C]">Payment & Settlement Rules</CardTitle>
             </div>
-            <p className="text-xs text-[#737373]">
-              Regulate payment methods and Cash on Delivery (COD) threshold limits.
-            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between p-3.5 bg-[#FAF8F5] rounded-lg border border-[#E5E1DC]">
               <div>
                 <h4 className="text-xs font-semibold text-[#1C1C1C]">Enable Cash on Delivery (COD)</h4>
                 <p className="text-[11px] text-[#737373]">
-                  Allow customers to pay physical cash upon courier parcel handover.
+                  Allow customers to pay physical cash upon courier parcel handover (Trax, TCS, Leopards).
                 </p>
               </div>
               <input
@@ -140,11 +130,11 @@ export default function AdminSettingsPage() {
             {settings.codEnabled && (
               <div className="max-w-xs">
                 <Input
-                  label="Maximum COD Order Amount ($)"
+                  label="Maximum COD Order Amount (PKR)"
                   type="number"
                   value={settings.codMaxLimit}
                   onChange={(e) => setSettings({ ...settings, codMaxLimit: e.target.value })}
-                  helperText="Carts above this sum require pre-paid cards"
+                  helperText="Maximum allowed order value for courier doorstep cash collection"
                   required
                 />
               </div>
@@ -154,16 +144,13 @@ export default function AdminSettingsPage() {
 
         {/* Moderation & Governance Switches */}
         <Card>
-          <CardHeader>
+          <CardHeader className="py-3.5 sm:py-4 px-4 sm:px-6 border-b border-[#E5E1DC]">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#8B3A4A]" />
-              <CardTitle className="text-base">Moderation & Platform Safety</CardTitle>
+              <CardTitle className="text-base text-[#1C1C1C]">Moderation & Platform Safety</CardTitle>
             </div>
-            <p className="text-xs text-[#737373]">
-              Configure review moderation policy and seller registration checks.
-            </p>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-4 sm:p-6 space-y-3">
             <div className="flex items-center justify-between p-3.5 bg-[#FAF8F5] rounded-lg border border-[#E5E1DC]">
               <div>
                 <h4 className="text-xs font-semibold text-[#1C1C1C]">Require Review Approval</h4>

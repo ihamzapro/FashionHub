@@ -15,24 +15,30 @@ export function Dropdown({ trigger, children, align = "right", className }: Drop
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
-      <div onClick={() => setIsOpen(!isOpen)}>{trigger}</div>
+    <div className={cn("relative inline-block text-left", isOpen ? "z-50" : "z-20")} ref={dropdownRef}>
+      <div onClick={() => setIsOpen((prev) => !prev)} className="cursor-pointer">
+        {trigger}
+      </div>
 
       {isOpen && (
         <div
           className={cn(
-            "absolute z-40 mt-2 min-w-[200px] bg-white rounded-xl border border-[#E5E1DC] shadow-lg py-1.5",
+            "absolute z-50 mt-2 min-w-[200px] bg-white rounded-xl border border-[#E5E1DC] shadow-xl py-1.5",
             "animate-in fade-in zoom-in-95 duration-150 origin-top",
             align === "right" ? "right-0" : "left-0",
             className

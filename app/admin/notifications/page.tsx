@@ -12,10 +12,12 @@ import {
   Check,
   ExternalLink,
   Clock,
+  ChevronDown,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { formatDate } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
 
@@ -38,7 +40,7 @@ const INITIAL_ADMIN_NOTIFICATIONS: AdminNotificationItem[] = [
     id: "notif-1",
     category: "order",
     title: "High-Value Transaction Placed",
-    message: "Order #ORD-2026-9481 valued at $1,420.00 was created by Elena Rostova. Escrow funds secured.",
+    message: "Order #ORD-2026-9481 valued at PKR 1,420 was created by Elena Rostova. Escrow funds secured.",
     timestamp: "2026-10-09T08:30:00Z",
     read: false,
     actionHref: "/admin/orders",
@@ -104,6 +106,27 @@ export default function AdminNotificationsPage() {
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<AdminNotificationItem[]>(INITIAL_ADMIN_NOTIFICATIONS);
   const [filterTab, setFilterTab] = useState<NotificationFilterTab>("all");
+
+  const filterOptions = [
+    { key: "all" as NotificationFilterTab, label: "All Activity", icon: Bell },
+    { key: "order" as NotificationFilterTab, label: "New Orders", icon: ShoppingBag },
+    { key: "supplier" as NotificationFilterTab, label: "New Suppliers", icon: Store },
+    { key: "review" as NotificationFilterTab, label: "Pending Reviews", icon: MessageSquare },
+    { key: "system" as NotificationFilterTab, label: "System Alerts", icon: AlertCircle },
+  ];
+
+  const filterCounts = useMemo(() => {
+    return {
+      all: notifications.length,
+      order: notifications.filter((n) => n.category === "order").length,
+      supplier: notifications.filter((n) => n.category === "supplier").length,
+      review: notifications.filter((n) => n.category === "review").length,
+      system: notifications.filter((n) => n.category === "system").length,
+    };
+  }, [notifications]);
+
+  const currentFilter = filterOptions.find((f) => f.key === filterTab) || filterOptions[0];
+  const CurrentFilterIcon = currentFilter.icon;
 
   const filteredList = useMemo(() => {
     if (filterTab === "all") return notifications;
@@ -174,20 +197,15 @@ export default function AdminNotificationsPage() {
     <div className="space-y-6">
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-              Admin Notification Center
-            </h2>
-            {unreadCount > 0 && (
-              <Badge variant="accent" size="sm" className="bg-[#8B3A4A] text-white">
-                {unreadCount} Unread
-              </Badge>
-            )}
-          </div>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Real-time administrative alerts for new marketplace transactions, supplier verifications, and system events.
-          </p>
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+            Admin Notification Center
+          </h2>
+          {unreadCount > 0 && (
+            <Badge variant="accent" size="sm" className="bg-[#8B3A4A] text-white font-medium">
+              {unreadCount} Unread
+            </Badge>
+          )}
         </div>
 
         {unreadCount > 0 && (
@@ -196,44 +214,109 @@ export default function AdminNotificationsPage() {
             size="sm"
             onClick={handleMarkAllAsRead}
             leftIcon={<Check className="w-3.5 h-3.5" />}
-            className="self-start sm:self-auto"
+            className="self-start sm:self-auto cursor-pointer border-[#E5E1DC] text-[#242424] hover:border-[#8B3A4A]/50 hover:bg-[#FAF8F5]"
           >
             Mark All as Read
           </Button>
         )}
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#E5E1DC] pb-3">
-        {(
-          [
-            { key: "all", label: "All Activity", count: notifications.length },
-            { key: "order", label: "New Orders", count: notifications.filter((n) => n.category === "order").length },
-            { key: "supplier", label: "New Suppliers", count: notifications.filter((n) => n.category === "supplier").length },
-            { key: "review", label: "Pending Reviews", count: notifications.filter((n) => n.category === "review").length },
-            { key: "system", label: "System Alerts", count: notifications.filter((n) => n.category === "system").length },
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setFilterTab(tab.key)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2 ${
-              filterTab === tab.key
-                ? "bg-[#8B3A4A] text-white shadow-xs font-semibold"
-                : "bg-white border border-[#E5E1DC] text-[#737373] hover:text-[#1C1C1C]"
-            }`}
-          >
-            <span>{tab.label}</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                filterTab === tab.key ? "bg-white/20 text-white" : "bg-[#FAF8F5] text-[#737373]"
-              }`}
+      {/* Controls Bar: Activity Filter Dropdown & Quick Counts */}
+      <Card className="overflow-visible relative z-30">
+        <CardContent className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-visible">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Dropdown
+              align="left"
+              className="w-64 p-1.5 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08)] border-[#E5E1DC] rounded-xl"
+              trigger={
+                <button
+                  type="button"
+                  className={`h-10 px-3.5 rounded-lg border text-xs font-medium flex items-center gap-2.5 transition-all cursor-pointer shadow-xs ${
+                    filterTab !== "all"
+                      ? "bg-[#8B3A4A]/10 border-[#8B3A4A] text-[#8B3A4A]"
+                      : "bg-white border-[#E5E1DC] text-[#242424] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
+                      filterTab !== "all" ? "bg-[#8B3A4A] text-white" : "bg-[#8B3A4A]/10 text-[#8B3A4A]"
+                    }`}
+                  >
+                    <CurrentFilterIcon className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[#737373] text-[11px] font-normal">Activity:</span>
+                  <span className="font-semibold text-[#1C1C1C]">
+                    {currentFilter.label}
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-[#FAF8F5] text-[#737373] border border-[#E5E1DC] ml-0.5">
+                    {filterCounts[filterTab]}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#737373] ml-0.5" />
+                </button>
+              }
             >
-              {tab.count}
+              <div className="px-3 py-1.5 border-b border-[#E5E1DC]/60 mb-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                  Filter by Activity
+                </p>
+              </div>
+
+              <div className="space-y-0.5">
+                {filterOptions.map((item) => {
+                  const Icon = item.icon;
+                  const isSelected = filterTab === item.key;
+                  const count = filterCounts[item.key] ?? 0;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setFilterTab(item.key)}
+                      className={`w-full px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#8B3A4A]/10 text-[#8B3A4A] font-semibold"
+                          : "text-[#242424] hover:bg-[#FAF8F5] hover:text-[#1C1C1C]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-[#8B3A4A]" : "text-[#737373]"}`} />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+                            isSelected
+                              ? "bg-[#8B3A4A]/15 text-[#8B3A4A]"
+                              : "bg-[#FAF8F5] text-[#737373] border border-[#E5E1DC]"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#8B3A4A]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Dropdown>
+
+            {filterTab !== "all" && (
+              <button
+                type="button"
+                onClick={() => setFilterTab("all")}
+                className="text-xs text-[#8B3A4A] hover:underline font-medium px-2 py-1 cursor-pointer"
+              >
+                Reset Filter
+              </button>
+            )}
+          </div>
+
+          <div className="text-xs text-[#737373] font-medium flex items-center gap-2">
+            <span>
+              Showing <strong className="text-[#1C1C1C]">{filteredList.length}</strong> of {notifications.length} alerts
             </span>
-          </button>
-        ))}
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Notifications List */}
       <Card>

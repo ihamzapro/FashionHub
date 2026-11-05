@@ -328,7 +328,7 @@ export function ProductDetailsClient({
           <div className="pt-2 space-y-2.5 text-xs text-[#737373] border-t border-[#E5E1DC]">
             <div className="flex items-center gap-2.5">
               <Truck className="w-4 h-4 text-[#8B3A4A] shrink-0" />
-              <span>Complimentary insured express delivery on orders over $250</span>
+              <span>Complimentary insured express delivery on orders over PKR 5,000</span>
             </div>
             <div className="flex items-center gap-2.5">
               <RotateCcw className="w-4 h-4 text-[#8B3A4A] shrink-0" />

@@ -144,19 +144,10 @@ export default function AdminProductsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-            Marketplace Catalog Moderation
-          </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Audit artisan listings, regulate inventory thresholds, edit piece details, and control publication status.
-          </p>
-        </div>
-
-        <span className="text-xs font-mono font-medium text-[#737373] bg-[#FAF8F5] px-3 py-1.5 rounded-lg border border-[#E5E1DC]">
-          Showing {filteredProducts.length} of {products.length} Products
-        </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+          Marketplace Catalog Moderation
+        </h2>
       </div>
 
       {/* Filters Card */}

@@ -21,11 +21,11 @@ export default function SupplierSettingsPage() {
 
   const [storeName, setStoreName] = useState(user?.storeName || "Atelier V Studios");
   const [email, setEmail] = useState(user?.email || "supplier@atelierv.com");
-  const [phone, setPhone] = useState(user?.phone || "+33 1 42 68 55 00");
-  const [address, setAddress] = useState("18 Rue du Faubourg Saint-Honoré");
-  const [city, setCity] = useState("Paris");
-  const [country, setCountry] = useState("France");
-  const [postalCode, setPostalCode] = useState("75008");
+  const [phone, setPhone] = useState(user?.phone || "+92 300 8472910");
+  const [address, setAddress] = useState(user?.address?.street || "Suite 402, Heritage Craft Center, Gulberg III");
+  const [city, setCity] = useState(user?.address?.city || "Lahore");
+  const [country, setCountry] = useState("Pakistan");
+  const [postalCode, setPostalCode] = useState(user?.address?.postalCode || "54000");
   const [leadTimeDays, setLeadTimeDays] = useState("1-2 business days");
   const [lowStockThreshold, setLowStockThreshold] = useState("10");
 
@@ -55,9 +55,6 @@ export default function SupplierSettingsPage() {
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
           Atelier Settings & Preferences
         </h2>
-        <p className="text-xs text-[#737373] mt-0.5">
-          Configure your merchant profile, dispatch location, and Cash on Delivery (COD) fulfillment rules.
-        </p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
@@ -168,15 +165,15 @@ export default function SupplierSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* COD & Operations Policies */}
+        {/* Fulfillment & Dispatch Controls */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Truck className="w-4 h-4 text-[#8B3A4A]" />
-              <CardTitle>Fulfillment & Cash on Delivery (COD) Rules</CardTitle>
+              <CardTitle>Fulfillment & Dispatch Controls</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-[#737373] mb-1.5">
@@ -185,7 +182,7 @@ export default function SupplierSettingsPage() {
                 <select
                   value={leadTimeDays}
                   onChange={(e) => setLeadTimeDays(e.target.value)}
-                  className="w-full bg-[#FAF8F5] border border-[#E5E1DC] text-xs rounded-xl px-3.5 py-2.5 text-[#242424] focus:outline-hidden focus:border-[#8B3A4A]"
+                  className="w-full bg-[#FAF8F5] border border-[#E5E1DC] text-xs rounded-xl px-3.5 py-2.5 text-[#242424] focus:outline-hidden focus:border-[#8B3A4A] cursor-pointer font-medium"
                 >
                   <option value="Same day">Same Day Dispatch (&lt;12h)</option>
                   <option value="1-2 business days">1-2 Business Days (Standard)</option>
@@ -203,11 +200,6 @@ export default function SupplierSettingsPage() {
                   onChange={(e) => setLowStockThreshold(e.target.value)}
                 />
               </div>
-            </div>
-
-            <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E5E1DC] text-xs text-[#737373]">
-              <p className="font-semibold text-[#1C1C1C] mb-1">COD Payment Settlement Policy</p>
-              Cash payments collected by DHL and FedEx courier partners are verified upon delivery scan and credited to your workshop bank balance every Wednesday.
             </div>
           </CardContent>
         </Card>

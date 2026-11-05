@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +27,10 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  Upload,
+  Camera,
+  Trash2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -40,10 +44,48 @@ function ProfileContent() {
 
   // Personal Info Form State - initialized from user
   const [name, setName] = useState(user?.name || "");
+  const [avatar, setAvatar] = useState(user?.avatar || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [storeName, setStoreName] = useState(user?.storeName || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [savingPersonal, setSavingPersonal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid File Type",
+        message: "Please choose an image file (PNG, JPG, WebP).",
+        type: "error",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        message: "Image must be under 5MB.",
+        type: "error",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setAvatar(reader.result);
+        toast({
+          title: "Image Uploaded",
+          message: `${file.name} loaded from device. Click "Save Changes" to apply.`,
+          type: "success",
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Address Form State - initialized from user.address
   const [street, setStreet] = useState(user?.address?.street || "");
@@ -66,6 +108,7 @@ function ProfileContent() {
 
     const res = await updateProfile({
       name,
+      avatar,
       phone,
       storeName: role === "supplier" ? storeName : undefined,
       bio,
@@ -184,8 +227,8 @@ function ProfileContent() {
           <Avatar
             src={user?.avatar}
             name={user?.name || "Member"}
-            size="lg"
-            className="w-16 h-16 sm:w-20 sm:h-20 ring-4 ring-[#FAF8F5] text-lg font-serif"
+            size="2xl"
+            className="w-16 h-16 sm:w-20 sm:h-20 ring-4 ring-[#FAF8F5] shadow-xs"
           />
           <div className="space-y-1">
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -214,10 +257,10 @@ function ProfileContent() {
 
         <div className="flex items-center gap-3 w-full md:w-auto justify-end">
           {role === "supplier" && (
-            <Link href="/supplier/dashboard">
-              <Button variant="outline" size="sm" className="gap-1.5 border-[#1C1C1C] text-[#1C1C1C]">
+            <Link href="/supplier/profile">
+              <Button variant="outline" size="sm" className="gap-1.5 border-[#8B3A4A] text-[#8B3A4A] hover:bg-[#8B3A4A]/5 cursor-pointer">
                 <Store className="w-3.5 h-3.5" />
-                <span>Supplier Portal</span>
+                <span>Supplier Workshop Profile</span>
               </Button>
             </Link>
           )}
@@ -315,6 +358,88 @@ function ProfileContent() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
+                  {/* Profile Photo Display & Upload from Device / URL */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF8F5] border border-[#E5E1DC] flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                    <div className="relative group shrink-0">
+                      <Avatar
+                        src={avatar || user?.avatar}
+                        name={name || user?.name || "Member"}
+                        size="2xl"
+                        className="w-20 h-20 rounded-full border-2 border-white shadow-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute inset-0 rounded-full bg-black/45 text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity cursor-pointer text-[10px] font-medium"
+                        title="Upload photo from device"
+                      >
+                        <Camera className="w-5 h-5 mb-0.5" />
+                        <span>Change</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-3 flex-1 w-full">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-semibold text-[#1C1C1C]">
+                            Profile Picture
+                          </p>
+                          <p className="text-[11px] text-[#737373]">
+                            Upload a photo from your device or paste an image link.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            leftIcon={<Upload className="w-3.5 h-3.5" />}
+                            className="text-xs h-8 px-3 cursor-pointer bg-white border-[#E5E1DC] hover:border-[#8B3A4A] hover:text-[#8B3A4A]"
+                          >
+                            Upload from Device
+                          </Button>
+                          {avatar && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setAvatar("")}
+                              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                              className="text-xs h-8 px-2.5 text-[#B84A4A] hover:bg-[#B84A4A]/10 hover:text-[#B84A4A] cursor-pointer"
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={avatar.startsWith("data:") ? "Image loaded from device" : avatar}
+                          disabled={avatar.startsWith("data:")}
+                          onChange={(e) => setAvatar(e.target.value)}
+                          placeholder="Or paste image URL (https://...)"
+                          leftIcon={<ImageIcon className="w-3.5 h-3.5 text-[#737373]" />}
+                          className="bg-white text-xs h-9"
+                        />
+                        {avatar.startsWith("data:") && (
+                          <span className="text-[10px] text-[#4F7A61] font-semibold bg-[#4F7A61]/10 px-2.5 py-1.5 rounded-lg whitespace-nowrap shrink-0">
+                            Device Image Ready
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Full Name"

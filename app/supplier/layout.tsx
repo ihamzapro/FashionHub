@@ -10,7 +10,6 @@ export default function SupplierLayout({
     <DashboardLayout
       role="supplier"
       title="Supplier Merchant Portal"
-      description="Manage your artisanal collections, monitor inventory, and fulfill customer orders."
     >
       {children}
     </DashboardLayout>

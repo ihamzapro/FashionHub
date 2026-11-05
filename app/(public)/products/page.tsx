@@ -24,10 +24,10 @@ import { cn } from "@/lib/utils";
 // Static price ranges
 const PRICE_RANGES = [
   { label: "All Prices", value: "all", min: 0, max: Infinity },
-  { label: "Under $100", value: "under-100", min: 0, max: 100 },
-  { label: "$100 to $250", value: "100-250", min: 100, max: 250 },
-  { label: "$250 to $500", value: "250-500", min: 250, max: 500 },
-  { label: "$500 and above", value: "above-500", min: 500, max: Infinity },
+  { label: "Under PKR 100", value: "under-100", min: 0, max: 100 },
+  { label: "PKR 100 to PKR 250", value: "100-250", min: 100, max: 250 },
+  { label: "PKR 250 to PKR 500", value: "250-500", min: 250, max: 500 },
+  { label: "PKR 500 and above", value: "above-500", min: 500, max: Infinity },
 ];
 
 // Static rating options

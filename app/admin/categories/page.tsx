@@ -8,6 +8,8 @@ import {
   Trash2,
   Package,
   Sparkles,
+  Upload,
+  X,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -46,6 +48,46 @@ export default function AdminCategoriesPage() {
     image: "",
     featured: true,
   });
+
+  // Drag states for photo file upload
+  const [isDraggingAdd, setIsDraggingAdd] = useState(false);
+  const [isDraggingEdit, setIsDraggingEdit] = useState(false);
+
+  const processImageFile = (file: File, isEdit: boolean) => {
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid Format",
+        message: "Please upload an image file (PNG, JPG, WEBP, GIF).",
+        type: "error",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Exceeds Limit",
+        message: "Please choose an image under 5MB.",
+        type: "error",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      if (isEdit) {
+        setEditForm((prev) => ({ ...prev, image: result }));
+      } else {
+        setAddForm((prev) => ({ ...prev, image: result }));
+      }
+      toast({
+        title: "Image Uploaded",
+        message: `${file.name} ready for department banner.`,
+        type: "success",
+      });
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Compute live product counts per category
   const getProductCount = (categoryName: string, categorySlug: string, fallbackCount: number) => {
@@ -113,11 +155,15 @@ export default function AdminCategoriesPage() {
     e.preventDefault();
     if (!editCategoryData) return;
 
+    const image =
+      editForm.image.trim() ||
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000&auto=format&fit=crop";
+
     updateCategory(editCategoryData.id, {
       name: editForm.name,
       slug: editForm.slug,
       description: editForm.description,
-      image: editForm.image,
+      image,
       featured: editForm.featured,
     });
 
@@ -158,14 +204,9 @@ export default function AdminCategoriesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-            Department & Category Taxonomy
-          </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Organize catalog hierarchy, manage department banners, and audit product distributions.
-          </p>
-        </div>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+          Department & Category Taxonomy
+        </h2>
 
         <Button
           variant="default"
@@ -190,6 +231,7 @@ export default function AdminCategoriesPage() {
                   src={cat.image}
                   alt={cat.name}
                   fill
+                  unoptimized={!cat.image.startsWith("https://images.unsplash.com")}
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
@@ -282,12 +324,106 @@ export default function AdminCategoriesPage() {
               required
             />
 
-            <Input
-              label="Cover Image URL"
-              placeholder="https://images.unsplash.com/..."
-              value={addForm.image}
-              onChange={(e) => setAddForm({ ...addForm, image: e.target.value })}
-            />
+            {/* Category Cover Photo & URL */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-[#242424] block">
+                Cover Photo
+              </label>
+
+              {/* Active Image Preview */}
+              {addForm.image ? (
+                <div className="relative rounded-lg border border-[#E5E1DC] bg-[#FAF8F5] p-2.5 flex items-center gap-3">
+                  <div className="relative w-14 h-14 rounded-md overflow-hidden bg-stone-200 shrink-0 border border-[#E5E1DC]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={addForm.image}
+                      alt="Category preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=300&auto=format&fit=crop";
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#8B3A4A]/10 text-[#8B3A4A]">
+                      {addForm.image.startsWith("data:") ? "Uploaded Photo File" : "Image URL"}
+                    </span>
+                    <p className="text-xs text-[#242424] truncate mt-1 font-mono text-[11px]">
+                      {addForm.image.startsWith("data:") ? "Device photo ready" : addForm.image}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAddForm((prev) => ({ ...prev, image: "" }))}
+                    className="p-1.5 text-[#737373] hover:text-[#B84A4A] hover:bg-[#B84A4A]/10 rounded-md transition-colors shrink-0"
+                    title="Remove Image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : null}
+
+              {/* Upload Dropzone */}
+              <label
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDraggingAdd(true);
+                }}
+                onDragLeave={() => setIsDraggingAdd(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingAdd(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) processImageFile(file, false);
+                }}
+                className={`flex flex-col items-center justify-center border border-dashed rounded-lg p-3.5 cursor-pointer transition-all ${
+                  isDraggingAdd
+                    ? "border-[#8B3A4A] bg-[#8B3A4A]/5"
+                    : "border-[#E5E1DC] bg-white hover:bg-[#FAF8F5] hover:border-[#8B3A4A]/60"
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) processImageFile(file, false);
+                    e.target.value = "";
+                  }}
+                />
+                <div className="flex items-center gap-2.5 text-xs">
+                  <div className="w-8 h-8 rounded-full bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center shrink-0">
+                    <Upload className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-[#1C1C1C] text-xs">
+                      Upload photo from device
+                    </p>
+                    <p className="text-[10px] text-[#737373]">
+                      PNG, JPG, WebP up to 5MB
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              {/* Divider */}
+              <div className="flex items-center gap-2 py-0.5">
+                <div className="h-px bg-[#E5E1DC] flex-1" />
+                <span className="text-[10px] uppercase font-semibold text-[#737373] tracking-wider">
+                  or enter image url
+                </span>
+                <div className="h-px bg-[#E5E1DC] flex-1" />
+              </div>
+
+              {/* URL Input */}
+              <Input
+                placeholder="https://images.unsplash.com/..."
+                value={addForm.image.startsWith("data:") ? "" : addForm.image}
+                onChange={(e) => setAddForm({ ...addForm, image: e.target.value })}
+              />
+            </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#242424] block">Description</label>
@@ -344,12 +480,106 @@ export default function AdminCategoriesPage() {
               required
             />
 
-            <Input
-              label="Cover Image URL"
-              value={editForm.image}
-              onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
-              required
-            />
+            {/* Category Cover Photo & URL */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-[#242424] block">
+                Cover Photo
+              </label>
+
+              {/* Active Image Preview */}
+              {editForm.image ? (
+                <div className="relative rounded-lg border border-[#E5E1DC] bg-[#FAF8F5] p-2.5 flex items-center gap-3">
+                  <div className="relative w-14 h-14 rounded-md overflow-hidden bg-stone-200 shrink-0 border border-[#E5E1DC]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={editForm.image}
+                      alt="Category preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=300&auto=format&fit=crop";
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#8B3A4A]/10 text-[#8B3A4A]">
+                      {editForm.image.startsWith("data:") ? "Uploaded Photo File" : "Image URL"}
+                    </span>
+                    <p className="text-xs text-[#242424] truncate mt-1 font-mono text-[11px]">
+                      {editForm.image.startsWith("data:") ? "Device photo ready" : editForm.image}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditForm((prev) => ({ ...prev, image: "" }))}
+                    className="p-1.5 text-[#737373] hover:text-[#B84A4A] hover:bg-[#B84A4A]/10 rounded-md transition-colors shrink-0"
+                    title="Remove Image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : null}
+
+              {/* Upload Dropzone */}
+              <label
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDraggingEdit(true);
+                }}
+                onDragLeave={() => setIsDraggingEdit(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingEdit(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) processImageFile(file, true);
+                }}
+                className={`flex flex-col items-center justify-center border border-dashed rounded-lg p-3.5 cursor-pointer transition-all ${
+                  isDraggingEdit
+                    ? "border-[#8B3A4A] bg-[#8B3A4A]/5"
+                    : "border-[#E5E1DC] bg-white hover:bg-[#FAF8F5] hover:border-[#8B3A4A]/60"
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) processImageFile(file, true);
+                    e.target.value = "";
+                  }}
+                />
+                <div className="flex items-center gap-2.5 text-xs">
+                  <div className="w-8 h-8 rounded-full bg-[#8B3A4A]/10 text-[#8B3A4A] flex items-center justify-center shrink-0">
+                    <Upload className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-[#1C1C1C] text-xs">
+                      Upload photo from device
+                    </p>
+                    <p className="text-[10px] text-[#737373]">
+                      PNG, JPG, WebP up to 5MB
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              {/* Divider */}
+              <div className="flex items-center gap-2 py-0.5">
+                <div className="h-px bg-[#E5E1DC] flex-1" />
+                <span className="text-[10px] uppercase font-semibold text-[#737373] tracking-wider">
+                  or enter image url
+                </span>
+                <div className="h-px bg-[#E5E1DC] flex-1" />
+              </div>
+
+              {/* URL Input */}
+              <Input
+                placeholder="https://images.unsplash.com/..."
+                value={editForm.image.startsWith("data:") ? "" : editForm.image}
+                onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+              />
+            </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#242424] block">Description</label>

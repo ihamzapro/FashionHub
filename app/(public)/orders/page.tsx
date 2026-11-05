@@ -106,7 +106,7 @@ export default function OrdersHistoryPage() {
           <div>
             <h2 className="text-xl font-editorial text-[#1C1C1C]">No Orders Yet</h2>
             <p className="text-xs text-[#737373] mt-1.5 max-w-sm mx-auto leading-relaxed">
-              You haven&apos;t placed any orders yet. Explore our curated collections and place your first Cash on Delivery order with complimentary shipping over $250.
+              You haven&apos;t placed any orders yet. Explore our curated collections and place your first Cash on Delivery order with complimentary shipping over PKR 5,000.
             </p>
           </div>
           <div className="pt-2">

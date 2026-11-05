@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Bell,
@@ -12,10 +12,14 @@ import {
   Trash2,
   Clock,
   ArrowRight,
+  ChevronDown,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { useToast } from "@/components/ui/Toast";
 
 export interface SupplierNotificationItem {
@@ -34,7 +38,7 @@ const INITIAL_NOTIFICATIONS: SupplierNotificationItem[] = [
     id: "notif-1",
     type: "new_order",
     title: "New Order Placed: #FH-94823",
-    message: "Elena Rostova placed an order for 2x Organic Heavyweight Boxy Tee ($130.00). Cash on Delivery fulfillment pending.",
+    message: "Elena Rostova placed an order for 2x Organic Heavyweight Boxy Tee (PKR 130). Cash on Delivery fulfillment pending.",
     time: "12 minutes ago",
     read: false,
     actionLabel: "Fulfill Order",
@@ -74,7 +78,7 @@ const INITIAL_NOTIFICATIONS: SupplierNotificationItem[] = [
     id: "notif-5",
     type: "order_update",
     title: "COD Payment Collected: #FH-94819",
-    message: "Customer completed cash payment of $240.00 upon courier delivery. Remittance credited to your workshop ledger.",
+    message: "Customer completed cash payment of PKR 240 upon courier delivery. Remittance credited to your workshop ledger.",
     time: "2 days ago",
     read: true,
     actionLabel: "Ledger",
@@ -98,6 +102,28 @@ export default function SupplierNotificationsPage() {
   const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const filterOptions = [
+    { key: "all", label: "All Alerts", icon: Bell },
+    { key: "orders", label: "Orders & Shipping", icon: Truck },
+    { key: "low_stock", label: "Low Stock Alerts", icon: AlertTriangle },
+    { key: "product_alert", label: "Product Alerts", icon: Package },
+  ];
+
+  const filterCounts = useMemo(() => {
+    return {
+      all: notifications.length,
+      orders: notifications.filter(
+        (n) => n.type === "new_order" || n.type === "order_update"
+      ).length,
+      low_stock: notifications.filter((n) => n.type === "low_stock").length,
+      product_alert: notifications.filter((n) => n.type === "product_alert").length,
+    };
+  }, [notifications]);
+
+  const currentFilter =
+    filterOptions.find((f) => f.key === activeFilter) || filterOptions[0];
+  const CurrentFilterIcon = currentFilter.icon;
 
   const filteredNotifications = notifications.filter((n) => {
     if (activeFilter === "all") return true;
@@ -164,90 +190,141 @@ export default function SupplierNotificationsPage() {
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-              Supplier Notifications
-            </h2>
-            {unreadCount > 0 && (
-              <Badge variant="accent" size="sm">
-                {unreadCount} Unread
-              </Badge>
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+            Supplier Notifications
+          </h2>
+          {unreadCount > 0 && (
+            <Badge variant="accent" size="sm" className="bg-[#8B3A4A] text-white font-medium">
+              {unreadCount} Unread
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Controls Bar: Alert Filter Dropdown & Quick Actions */}
+      <Card className="overflow-visible relative z-30">
+        <CardContent className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-visible">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Dropdown
+              align="left"
+              className="w-64 p-1.5 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08)] border-[#E5E1DC] rounded-xl"
+              trigger={
+                <button
+                  type="button"
+                  className={`h-10 px-3.5 rounded-lg border text-xs font-medium flex items-center gap-2.5 transition-all cursor-pointer shadow-xs ${
+                    activeFilter !== "all"
+                      ? "bg-[#8B3A4A]/10 border-[#8B3A4A] text-[#8B3A4A]"
+                      : "bg-white border-[#E5E1DC] text-[#242424] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
+                      activeFilter !== "all"
+                        ? "bg-[#8B3A4A] text-white"
+                        : "bg-[#8B3A4A]/10 text-[#8B3A4A]"
+                    }`}
+                  >
+                    <CurrentFilterIcon className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[#737373] text-[11px] font-normal">Alerts:</span>
+                  <span className="font-semibold text-[#1C1C1C]">
+                    {currentFilter.label}
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-[#FAF8F5] text-[#737373] border border-[#E5E1DC] ml-0.5">
+                    {filterCounts[activeFilter as keyof typeof filterCounts] ?? filteredNotifications.length}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#737373] ml-0.5" />
+                </button>
+              }
+            >
+              <div className="px-3 py-1.5 border-b border-[#E5E1DC]/60 mb-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                  Filter Alerts
+                </p>
+              </div>
+
+              <div className="space-y-0.5">
+                {filterOptions.map((item) => {
+                  const Icon = item.icon;
+                  const isSelected = activeFilter === item.key;
+                  const count = filterCounts[item.key as keyof typeof filterCounts] ?? 0;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setActiveFilter(item.key)}
+                      className={`w-full px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#8B3A4A]/10 text-[#8B3A4A] font-semibold"
+                          : "text-[#242424] hover:bg-[#FAF8F5] hover:text-[#1C1C1C]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Icon
+                          className={`w-3.5 h-3.5 shrink-0 ${
+                            isSelected ? "text-[#8B3A4A]" : "text-[#737373]"
+                          }`}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+                            isSelected
+                              ? "bg-[#8B3A4A]/15 text-[#8B3A4A]"
+                              : "bg-[#FAF8F5] text-[#737373] border border-[#E5E1DC]"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#8B3A4A]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Dropdown>
+
+            {activeFilter !== "all" && (
+              <button
+                type="button"
+                onClick={() => setActiveFilter("all")}
+                className="h-10 px-2.5 text-xs text-[#737373] hover:text-[#8B3A4A] hover:bg-[#8B3A4A]/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                title="Reset to All Alerts"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
+              </button>
             )}
           </div>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Operational alerts for new orders, delivery handovers, low inventory, and garment status.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={markAllAsRead}
-              leftIcon={<CheckCheck className="w-3.5 h-3.5" />}
-            >
-              Mark all read
-            </Button>
-          )}
-          {notifications.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearAll}
-              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-            >
-              Clear
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#FAF8F5] border border-[#E5E1DC] rounded-xl text-xs font-medium">
-        {[
-          { id: "all", label: "All Alerts", count: notifications.length },
-          {
-            id: "orders",
-            label: "Orders & Shipping",
-            count: notifications.filter(
-              (n) => n.type === "new_order" || n.type === "order_update"
-            ).length,
-          },
-          {
-            id: "low_stock",
-            label: "Low Stock Alerts",
-            count: notifications.filter((n) => n.type === "low_stock").length,
-          },
-          {
-            id: "product_alert",
-            label: "Product Alerts",
-            count: notifications.filter((n) => n.type === "product_alert").length,
-          },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveFilter(tab.id)}
-            className={`px-3 py-1.5 rounded-lg transition-all text-xs flex items-center gap-1.5 cursor-pointer ${
-              activeFilter === tab.id
-                ? "bg-[#8B3A4A] text-white shadow-xs font-semibold"
-                : "text-[#737373] hover:text-[#1C1C1C] hover:bg-neutral-200/50"
-            }`}
-          >
-            <span>{tab.label}</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                activeFilter === tab.id
-                  ? "bg-white/20 text-white"
-                  : "bg-neutral-200 text-[#737373]"
-              }`}
-            >
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={markAllAsRead}
+                leftIcon={<CheckCheck className="w-3.5 h-3.5" />}
+                className="text-xs h-9 cursor-pointer border-[#E5E1DC] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
+              >
+                Mark all read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearAll}
+                leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                className="text-xs h-9 cursor-pointer border-[#E5E1DC] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Notification List */}
       <Card>

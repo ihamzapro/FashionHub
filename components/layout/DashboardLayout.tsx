@@ -62,7 +62,7 @@ export function DashboardLayout({
     { label: "Orders", href: "/supplier/orders", icon: ShoppingBag, badge: "Live" },
     { label: "Analytics", href: "/supplier/analytics", icon: BarChart3 },
     { label: "Notifications", href: "/supplier/notifications", icon: Bell, badge: "3" },
-    { label: "Profile", href: "/profile", icon: User },
+    { label: "Profile", href: "/supplier/profile", icon: User },
     { label: "Settings", href: "/supplier/settings", icon: Settings },
   ];
 

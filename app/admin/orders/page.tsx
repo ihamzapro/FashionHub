@@ -9,6 +9,9 @@ import {
   Clock,
   Truck,
   XCircle,
+  ChevronDown,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
@@ -16,6 +19,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { useToast } from "@/components/ui/Toast";
 import { useOrders } from "@/context/OrderContext";
 import { useProducts } from "@/context/ProductContext";
@@ -29,6 +33,34 @@ export default function AdminOrdersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const statusOptions = [
+    { id: "all", label: "All Statuses" },
+    { id: "pending", label: "Pending" },
+    { id: "processing", label: "Processing" },
+    { id: "shipped", label: "Shipped" },
+    { id: "delivered", label: "Delivered" },
+    { id: "cancelled", label: "Cancelled" },
+  ];
+
+  // Status counts for dropdown badges
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: orders.length,
+      pending: 0,
+      processing: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0,
+    };
+    orders.forEach((o) => {
+      const st = (o.status || o.orderStatus || "pending").toString().toLowerCase();
+      if (counts[st] !== undefined) {
+        counts[st] += 1;
+      }
+    });
+    return counts;
+  }, [orders]);
 
   // Helper to determine supplier name for an order
   const getSupplierNameForOrder = (order: Order) => {
@@ -120,50 +152,99 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
-            Marketplace Order Fulfillment & Escrow
-          </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Supervise fulfillment timelines, audit supplier settlements, and update shipment statuses.
-          </p>
-        </div>
-
-        <span className="text-xs font-mono font-medium text-[#737373] bg-[#FAF8F5] px-3 py-1.5 rounded-lg border border-[#E5E1DC]">
-          {filteredOrders.length} Transactions Listed
-        </span>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
+          Marketplace Order Fulfillment & Escrow
+        </h2>
       </div>
 
       {/* Orders Table Card */}
       <Card>
-        <CardHeader className="py-4 border-b border-[#E5E1DC]">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            <div className="w-full sm:max-w-sm">
+        <CardHeader className="py-3.5 px-4 sm:px-6 border-b border-[#E5E1DC]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="w-full sm:max-w-xs md:max-w-sm">
               <Input
                 placeholder="Search by order ID or customer..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 leftIcon={<Search className="w-4 h-4 text-[#737373]" />}
+                className="h-10 text-xs bg-white"
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-1 bg-[#FAF8F5] p-1 rounded-lg border border-[#E5E1DC]">
-              <span className="text-[10px] font-semibold text-[#737373] px-2 uppercase tracking-wider">
-                Status:
-              </span>
-              {["all", "pending", "processing", "shipped", "delivered", "cancelled"].map((s) => (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Dropdown
+                align="right"
+                className="w-56 p-1.5 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08)] border-[#E5E1DC] rounded-xl"
+                trigger={
+                  <button
+                    type="button"
+                    className={`h-10 px-3.5 rounded-lg border text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${
+                      statusFilter !== "all"
+                        ? "bg-[#8B3A4A]/10 border-[#8B3A4A] text-[#8B3A4A] shadow-xs"
+                        : "bg-white border-[#E5E1DC] text-[#242424] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
+                    }`}
+                  >
+                    <span className="text-[#737373] text-[11px] font-normal">Status:</span>
+                    <span className="font-semibold capitalize text-[#1C1C1C]">
+                      {statusOptions.find((opt) => opt.id === statusFilter)?.label || "All Statuses"}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#737373] ml-0.5" />
+                  </button>
+                }
+              >
+                <div className="px-3 py-1.5 border-b border-[#E5E1DC]/60 mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
+                    Filter by Status
+                  </p>
+                </div>
+
+                {statusOptions.map((item) => {
+                  const isSelected = statusFilter === item.id;
+                  const count = statusCounts[item.id] ?? 0;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setStatusFilter(item.id)}
+                      className={`w-full px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                        isSelected
+                          ? "bg-[#8B3A4A]/10 text-[#8B3A4A] font-semibold"
+                          : "text-[#242424] hover:bg-[#FAF8F5] hover:text-[#1C1C1C]"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+                            isSelected
+                              ? "bg-[#8B3A4A]/15 text-[#8B3A4A]"
+                              : "bg-[#FAF8F5] text-[#737373] border border-[#E5E1DC]"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#8B3A4A]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </Dropdown>
+
+              {/* Reset Filters Quick Action */}
+              {(statusFilter !== "all" || search) && (
                 <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium uppercase tracking-wider transition-colors cursor-pointer ${
-                    statusFilter === s
-                      ? "bg-[#8B3A4A] text-white shadow-xs"
-                      : "text-[#737373] hover:text-[#1C1C1C]"
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setSearch("");
+                  }}
+                  className="h-10 px-2.5 text-xs text-[#737373] hover:text-[#8B3A4A] hover:bg-[#8B3A4A]/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                  title="Reset all filters"
                 >
-                  {s}
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset</span>
                 </button>
-              ))}
+              )}
             </div>
           </div>
         </CardHeader>

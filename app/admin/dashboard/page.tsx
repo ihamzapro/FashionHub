@@ -319,14 +319,14 @@ export default function AdminDashboardPage() {
 
                 {/* Horizontal Guideline Grids & Currency Benchmarks */}
                 <g className="text-[#A39E96]">
-                  <line x1="35" y1="32" x2="480" y2="32" stroke="#E5E1DC" strokeDasharray="3 3" strokeOpacity="0.7" />
-                  <text x="5" y="35" fontSize="9" fill="#737373" fontFamily="monospace">$150k</text>
+                  <line x1="45" y1="32" x2="480" y2="32" stroke="#E5E1DC" strokeDasharray="3 3" strokeOpacity="0.7" />
+                  <text x="0" y="35" fontSize="8.5" fill="#737373" fontFamily="monospace">PKR 150k</text>
 
-                  <line x1="35" y1="66" x2="480" y2="66" stroke="#E5E1DC" strokeDasharray="3 3" strokeOpacity="0.7" />
-                  <text x="5" y="69" fontSize="9" fill="#737373" fontFamily="monospace">$100k</text>
+                  <line x1="45" y1="66" x2="480" y2="66" stroke="#E5E1DC" strokeDasharray="3 3" strokeOpacity="0.7" />
+                  <text x="0" y="69" fontSize="8.5" fill="#737373" fontFamily="monospace">PKR 100k</text>
 
-                  <line x1="35" y1="101" x2="480" y2="101" stroke="#E5E1DC" strokeDasharray="3 3" strokeOpacity="0.7" />
-                  <text x="5" y="104" fontSize="9" fill="#737373" fontFamily="monospace">$50k</text>
+                  <line x1="45" y1="101" x2="480" y2="101" stroke="#E5E1DC" strokeDasharray="3 3" strokeOpacity="0.7" />
+                  <text x="0" y="104" fontSize="8.5" fill="#737373" fontFamily="monospace">PKR 50k</text>
 
                   <line x1="35" y1="135" x2="480" y2="135" stroke="#E5E1DC" strokeOpacity="0.9" />
                 </g>

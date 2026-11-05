@@ -12,7 +12,6 @@ import {
   Image as ImageIcon,
   Check,
   AlertCircle,
-  Sparkles,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -27,25 +26,6 @@ const CATEGORIES = [
   "Accessories",
   "Outerwear",
   "Knitwear",
-];
-
-const PRESET_IMAGES = [
-  {
-    label: "Silk Shirt",
-    url: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    label: "Wool Overcoat",
-    url: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    label: "Leather Tote",
-    url: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    label: "Minimal Tee",
-    url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1000&auto=format&fit=crop",
-  },
 ];
 
 export default function AddProductPage() {
@@ -83,18 +63,6 @@ export default function AddProductPage() {
 
   const handleRemoveImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
-  };
-
-  const handleAddPreset = (url: string) => {
-    if (images.includes(url)) {
-      toast({
-        title: "Image already added",
-        message: "This sample image is already in your gallery.",
-        type: "info",
-      });
-      return;
-    }
-    setImages([...images, url]);
   };
 
   const handleFileUploadMock = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,9 +153,6 @@ export default function AddProductPage() {
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
             Add New Product
           </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            List a new artisanal garment or accessory in the FashionHub marketplace.
-          </p>
         </div>
       </div>
 
@@ -287,7 +252,7 @@ export default function AddProductPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-[#737373] mb-1.5">
-                  Retail Price ($) <span className="text-[#8B3A4A]">*</span>
+                  Retail Price (PKR) <span className="text-[#8B3A4A]">*</span>
                 </label>
                 <Input
                   type="number"
@@ -309,7 +274,7 @@ export default function AddProductPage() {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-[#737373] mb-1.5">
-                  Compare At Price ($) <span className="text-[#737373] font-normal">(Optional)</span>
+                  Compare At Price (PKR) <span className="text-[#737373] font-normal">(Optional)</span>
                 </label>
                 <Input
                   type="number"
@@ -427,27 +392,6 @@ export default function AddProductPage() {
               >
                 Add URL
               </Button>
-            </div>
-
-            {/* Fast Presets for Quick Testing */}
-            <div className="pt-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#737373] mb-2 flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3 text-[#8B3A4A]" />
-                Sample Editorial Presets
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {PRESET_IMAGES.map((preset, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => handleAddPreset(preset.url)}
-                    className="text-xs px-2.5 py-1 rounded-lg border border-[#E5E1DC] bg-white hover:bg-[#FAF8F5] text-[#242424] transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <Plus className="w-3 h-3 text-[#737373]" />
-                    <span>{preset.label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
           </CardContent>
         </Card>

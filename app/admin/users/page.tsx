@@ -14,6 +14,7 @@ import {
   Search,
   Plus,
   Eye,
+  EyeOff,
   Edit2,
   Trash2,
   Power,
@@ -43,6 +44,7 @@ export default function AdminUsersPage() {
   const [editUser, setEditUser] = useState<User | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [showAddPassword, setShowAddPassword] = useState(false);
 
   // Edit form state
   const [editFormData, setEditFormData] = useState({
@@ -260,6 +262,7 @@ export default function AdminUsersPage() {
     });
 
     setIsAddModalOpen(false);
+    setShowAddPassword(false);
     setAddFormData({
       name: "",
       email: "",
@@ -274,14 +277,14 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1C1C]">
             User Management & Access Control
           </h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Audit identities, manage role authorizations, and regulate account states across the marketplace.
-          </p>
+          <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-white border border-[#E5E1DC] text-[#737373]">
+            {users.length} {users.length === 1 ? "account" : "accounts"}
+          </span>
         </div>
 
         <Button
@@ -392,7 +395,6 @@ export default function AdminUsersPage() {
                         : "bg-white border-[#E5E1DC] text-[#242424] hover:border-[#8B3A4A]/40 hover:bg-[#FAF8F5]"
                     }`}
                   >
-                    <CheckCircle className={`w-3.5 h-3.5 ${statusFilter !== "all" ? "text-[#8B3A4A]" : "text-[#737373]"}`} />
                     <span className="text-[#737373] text-[11px] font-normal">Status:</span>
                     <span className="font-semibold capitalize text-[#1C1C1C]">
                       {statusFilter === "all" ? "All Statuses" : statusFilter}
@@ -408,10 +410,10 @@ export default function AdminUsersPage() {
                 </div>
 
                 {[
-                  { id: "all", label: "All Statuses", dot: "bg-[#737373]", count: statusCounts.all },
-                  { id: "active", label: "Active", dot: "bg-[#4F7A61]", count: statusCounts.active },
-                  { id: "inactive", label: "Inactive", dot: "bg-[#B78628]", count: statusCounts.inactive },
-                  { id: "suspended", label: "Suspended", dot: "bg-[#B84A4A]", count: statusCounts.suspended },
+                  { id: "all", label: "All Statuses", count: statusCounts.all },
+                  { id: "active", label: "Active", count: statusCounts.active },
+                  { id: "inactive", label: "Inactive", count: statusCounts.inactive },
+                  { id: "suspended", label: "Suspended", count: statusCounts.suspended },
                 ].map((item) => {
                   const isSelected = statusFilter === item.id;
                   return (
@@ -419,16 +421,13 @@ export default function AdminUsersPage() {
                       key={item.id}
                       type="button"
                       onClick={() => setStatusFilter(item.id)}
-                      className={`w-full px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                      className={`w-full px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
                         isSelected
                           ? "bg-[#8B3A4A]/10 text-[#8B3A4A] font-semibold"
                           : "text-[#242424] hover:bg-[#FAF8F5] hover:text-[#1C1C1C]"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${item.dot}`} />
-                        <span>{item.label}</span>
-                      </div>
+                      <span>{item.label}</span>
                       <div className="flex items-center gap-1.5">
                         <span
                           className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
@@ -730,7 +729,10 @@ export default function AdminUsersPage() {
       {isAddModalOpen && (
         <Modal
           isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setShowAddPassword(false);
+          }}
           title="Create New Platform Account"
         >
           <form onSubmit={handleCreateUser} className="space-y-4">
@@ -751,10 +753,26 @@ export default function AdminUsersPage() {
             />
             <Input
               label="Initial Password"
-              type="password"
+              type={showAddPassword ? "text" : "password"}
               value={addFormData.password}
               onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
               required
+              placeholder="e.g. password123"
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowAddPassword(!showAddPassword)}
+                  className="text-[#737373] hover:text-[#1C1C1C] transition-colors p-1 rounded-md focus:outline-none cursor-pointer"
+                  title={showAddPassword ? "Hide password" : "Show password"}
+                  aria-label={showAddPassword ? "Hide password" : "Show password"}
+                >
+                  {showAddPassword ? (
+                    <EyeOff className="w-4 h-4 text-[#8B3A4A]" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              }
             />
             <Input
               label="Contact Phone (Optional)"
@@ -801,7 +819,15 @@ export default function AdminUsersPage() {
             )}
 
             <div className="flex justify-end gap-2 pt-4 border-t border-[#E5E1DC]">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsAddModalOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setShowAddPassword(false);
+                }}
+              >
                 Cancel
               </Button>
               <Button type="submit" variant="default" size="sm" className="bg-[#8B3A4A] text-white">
